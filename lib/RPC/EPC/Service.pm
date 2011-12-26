@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use Carp;
 
-use version; our $VERSION = qv('0.0.1');
+use version; our $VERSION = qv('0.0.2');
 
 use base 'Exporter';
 
@@ -348,7 +348,7 @@ RPC::EPC::Service - An Asynchronous Remote Procedure Stack.
 
 =head1 VERSION
 
-This document describes RPC::EPC::Service version 0.0.1
+This document describes RPC::EPC::Service version 0.0.2
 
 
 =head1 SYNOPSIS
@@ -507,7 +507,7 @@ If connection failed, it will die.
 
 =head3 stop
 
-  $service->client_start;
+  $service->stop;
 
 Shutdown the connection.
 
