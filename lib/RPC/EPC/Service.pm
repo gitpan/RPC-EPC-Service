@@ -2,9 +2,10 @@ package RPC::EPC::Service;
 
 use warnings;
 use strict;
+use utf8;
 use Carp;
 
-use version; our $VERSION = qv('0.0.4');
+use version; our $VERSION = qv('0.0.5');
 
 use base 'Exporter';
 
@@ -12,6 +13,7 @@ our @EXPORT = qw(
    to_sexp
 );
 
+use Encode;
 use AnyEvent;
 use AnyEvent::Socket;
 use AnyEvent::Handle;
@@ -42,21 +44,13 @@ sub to_sexp {
 }
 
 
+# for elisp's prin1 escape
 my %ESCAPE = (
   '"'     => '"',
   '\\'    => '\\',
-  '/'     => '/',
-  'b'     => "\x07",
-  'f'     => "\x0C",
-  'n'     => "\x0A",
-  'r'     => "\x0D",
-  't'     => "\x09",
-  'u2028' => "\x{2028}",
-  'u2029' => "\x{2029}"
 );
 
 my %REVERSE;
-for (0x00 .. 0x1F, 0x7F) { $REVERSE{pack 'C', $_} = sprintf '\u%.4X', $_ }
 for my $key (keys %ESCAPE) { $REVERSE{$ESCAPE{$key}} = "\\$key" }
 
 sub _to_sexp_string {
@@ -64,7 +58,9 @@ sub _to_sexp_string {
   return "nil" unless $string;
 
   # Escape
-  $string =~ s/([\x00-\x1F\x7F\x{2028}\x{2029}\\\"\/\b\f\n\r\t])/$REVERSE{$1}/gs;
+  $string =~ s/([\\\"])/$REVERSE{$1}/gs;
+
+  $string = Encode::encode_utf8($string) if Encode::is_utf8($string);
 
   # Stringify
   return "\"$string\"";
@@ -173,28 +169,39 @@ sub _register_event_loop {
      });
   $self->{handle} = $hdl;
 
+  my $reading_buffer = "";
   my @reader; @reader =
     (line => sub {
-       my ($hdl, $buf) = @_;
-       my ($text, $sexp);
-       # print Dumper "BUF:", $buf;
-       my $len = substr($buf,0,6);
-       if (!$_ =~ /[0-9a-f]{6}/i) {
-         AE::log warn => "Wrong length: $buf\n";
+       my ($hdl, $incoming) = @_;
+       # print STDERR "INCOMING:$incoming";
+       $reading_buffer .= $incoming . "\n";
+       my $len = substr($reading_buffer, 0, 6);
+       if (!$len =~ /[0-9a-f]{6}/i) {
+         # print STDERR "Wrong length code: $reading_buffer\nAbort\n";
+         AE::log warn => "Wrong length code: $reading_buffer\n";
          $hdl->destroy;
          $self->{wait}->send;
          return;
        }
-       $len = hex($len)-1;
-       my $body = substr($buf,6);
+       $len = hex($len);
+       my $body = substr($reading_buffer, 6);
        if ($len > length $body) {
-         AE::log warn => "Not enough input text: $buf\n";
-         $hdl->destroy;
-         $self->{wait}->send;
+         # try next lines
+         # print STDERR "lencode:$len / current:" . (length $body) . "\n";
+         $hdl->push_read(@reader);
          return;
        }
+       # print STDERR "Here len:$len / current:" . (length $body) . "\n";
+       if ($len < length $body) {
+         $reading_buffer = substr($body, $len+1);
+         $body = substr($body, 0, $len);
+       } else {
+         $reading_buffer = "";
+       }
+
+       my ($text, $sexp);
        eval {
-         ($sexp, $text) = $ds->read($body);
+         ($sexp, $text) = $ds->read(Encode::decode_utf8($body));
        };
        # print STDERR "SEXP:".Dumper $sexp;
        if ($sexp->[0]) {
