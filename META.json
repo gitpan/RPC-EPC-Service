@@ -4,7 +4,7 @@
       "Masashi Sakurai <m.sakurai@kiwanami.net>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120351",
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -16,7 +16,7 @@
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "Module::Build" : "0.38"
+            "Module::Build" : "0.40"
          }
       },
       "runtime" : {
@@ -31,7 +31,7 @@
    "provides" : {
       "RPC::EPC::Service" : {
          "file" : "lib/RPC/EPC/Service.pm",
-         "version" : "v0.0.7"
+         "version" : "v0.0.8"
       }
    },
    "release_status" : "stable",
@@ -40,5 +40,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "v0.0.7"
+   "version" : "v0.0.8"
 }
