@@ -5,7 +5,7 @@ use strict;
 use utf8;
 use Carp;
 
-use version; our $VERSION = qv('0.0.9');
+use version; our $VERSION = qv('0.0.10');
 
 use base 'Exporter';
 
@@ -409,7 +409,7 @@ RPC::EPC::Service - An Asynchronous Remote Procedure Stack.
 
 =head1 VERSION
 
-This document describes RPC::EPC::Service version 0.0.9
+This document describes RPC::EPC::Service version 0.0.10
 
 
 =head1 SYNOPSIS
