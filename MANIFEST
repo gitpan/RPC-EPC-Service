@@ -20,6 +20,3 @@ t/_echo.pl
 t/_errors.pl
 t/_methods.pl
 t/_process.pl
-t/perlcritic.t
-t/pod-coverage.t
-t/pod.t
